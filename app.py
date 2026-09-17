@@ -112,6 +112,21 @@ def _stockage():
     return STOCKAGE
 
 
+@app.get("/api/sante")
+def sante():
+    """Diagnostic public : mode de stockage et noms (jamais les valeurs) des variables Redis."""
+    etat = {"stockage": STOCKAGE.mode if STOCKAGE else "non_configure"}
+    etat["variables"] = sorted(n for n in os.environ if "REDIS" in n or "KV_" in n or "UPSTASH" in n)
+    etat["code_admin_defini"] = bool(ADMIN_CODE)
+    if STOCKAGE is not None and STOCKAGE.mode == "redis":
+        try:
+            STOCKAGE._commande("PING")
+            etat["connexion"] = "ok"
+        except Exception as exc:  # noqa: BLE001
+            etat["connexion"] = f"erreur : {type(exc).__name__}"
+    return etat
+
+
 @app.get("/api/questionnaire")
 def questionnaire():
     return {"questions": QUESTIONS, "services": SERVICES}
