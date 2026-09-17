@@ -5,84 +5,174 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Résultats baromètre KAMA</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f4f6f8; --card: #fff; --text: #1d2733; --muted: #5d6b7a; --primary: #0b5d3b; --border: #d9e0e6;
-    --alerte: #b3261e; --fragile: #c77700; --correct: #1f6fb2; --solide: #0b7a4b;
+    --bg: #f3f5f2; --card: #fff; --text: #17231c; --muted: #637168; --line: #e1e6e2;
+    --primary: #0b5d3b; --primary-dark: #073f28; --primary-soft: #e6f2ec; --accent: #f2b33d;
+    --alerte: #c0362c; --fragile: #d9822b; --correct: #2f7fc1; --solide: #1f8a4c;
+    --alerte-soft: #fdecea; --fragile-soft: #fdf1e4; --correct-soft: #e8f1fa; --solide-soft: #e4f4ea;
+    --radius: 16px; --shadow: 0 1px 2px rgba(16, 40, 28, .05), 0 8px 24px rgba(16, 40, 28, .06);
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); }
-  header { background: var(--primary); color: #fff; padding: 20px 16px; }
-  header div { max-width: 1100px; margin: 0 auto; }
-  header h1 { margin: 0; font-size: 1.4rem; }
-  header p { margin: 6px 0 0; opacity: .9; font-size: .9rem; word-break: break-all; }
-  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
-  h2 { font-size: 1.1rem; margin: 0 0 12px; color: var(--primary); }
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
-  .kpi small { color: var(--muted); }
-  .kpi b { display: block; font-size: 1.8rem; margin-top: 4px; }
-  .theme { display: grid; grid-template-columns: minmax(140px, 240px) 1fr 60px 80px; gap: 10px; align-items: center; padding: 8px 0; }
-  .track { height: 14px; background: var(--border); border-radius: 7px; overflow: hidden; }
-  .track div { height: 100%; border-radius: 7px; }
-  .badge { font-size: .8rem; font-weight: 600; }
-  .Alerte { color: var(--alerte); } .Fragile { color: var(--fragile); } .Correct { color: var(--correct); } .Solide { color: var(--solide); }
-  .bg-Alerte { background: var(--alerte); } .bg-Fragile { background: var(--fragile); } .bg-Correct { background: var(--correct); } .bg-Solide { background: var(--solide); }
-  .table-wrap { overflow-x: auto; }
-  table { border-collapse: collapse; font-size: .85rem; white-space: nowrap; }
-  th, td { border: 1px solid var(--border); padding: 6px 8px; text-align: center; }
-  th { background: var(--primary); color: #fff; position: sticky; top: 0; }
-  td.txt { text-align: left; white-space: normal; min-width: 160px; }
-  input, button { font: inherit; padding: 10px; border-radius: 6px; border: 1px solid var(--border); }
-  button, .btn { background: var(--primary); color: #fff; border: 0; cursor: pointer; text-decoration: none; padding: 10px 16px; border-radius: 6px; display: inline-block; }
-  .login { max-width: 360px; margin: 40px auto; }
-  .login input { width: 100%; margin: 10px 0; }
-  .error { color: var(--alerte); font-weight: 600; }
-  .muted { color: var(--muted); font-size: .9rem; }
-  header a { color: #fff; font-size: .85rem; opacity: .9; }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  @media (max-width: 600px) { .theme { grid-template-columns: 1fr 50px 70px; } .theme .track { grid-column: 1 / -1; grid-row: 2; } }
+  body { margin: 0; font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+  .hero { background: radial-gradient(120% 140% at 100% 0%, #13804f 0%, var(--primary) 45%, var(--primary-dark) 100%); color: #fff; padding: 22px 16px 90px; }
+  .hero-inner { max-width: 1140px; margin: 0 auto; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; }
+  .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); color: var(--primary-dark); display: grid; place-items: center; font-weight: 800; letter-spacing: 0; }
+  .back { color: #fff; text-decoration: none; font-size: .85rem; font-weight: 600; padding: 7px 14px; border-radius: 999px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); }
+  .back:hover { background: rgba(255,255,255,.2); }
+  .hero h1 { margin: 22px 0 4px; font-size: clamp(1.5rem, 4vw, 2.1rem); font-weight: 800; letter-spacing: -.02em; }
+  .hero p { margin: 0; opacity: .85; font-size: .9rem; word-break: break-word; }
+
+  main { max-width: 1140px; margin: -64px auto 0; padding: 0 16px 40px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  h2 { font-size: 1.05rem; margin: 0; font-weight: 700; }
+  .sub { color: var(--muted); font-size: .85rem; margin: 2px 0 0; }
+
+  /* Connexion */
+  .login { max-width: 400px; margin: 0 auto; text-align: center; padding: 34px 28px; }
+  .lock { width: 60px; height: 60px; border-radius: 18px; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; margin: 0 auto 14px; }
+  .login h2 { font-size: 1.3rem; }
+  .login input { width: 100%; margin: 20px 0 12px; padding: 13px 14px; border: 1.5px solid var(--line); border-radius: 12px; font: inherit; text-align: center; letter-spacing: .1em; background: #fbfcfb; }
+  .login input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); background: #fff; }
+  .error { color: var(--alerte); background: var(--alerte-soft); font-weight: 600; font-size: .88rem; border-radius: 10px; padding: 9px 12px; margin: 0 0 12px; }
+  .error:empty { display: none; }
+
+  button { font: inherit; font-weight: 700; cursor: pointer; border-radius: 12px; border: 0; padding: 12px 18px; background: var(--primary); color: #fff; transition: background .15s, transform .12s; }
+  button:hover { background: var(--primary-dark); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .6; cursor: wait; }
+  button.ghost { background: #fff; color: var(--primary); border: 1.5px solid var(--line); }
+  button.ghost:hover { border-color: var(--primary); background: var(--primary-soft); }
+  .login button { width: 100%; padding: 14px; }
+
+  /* Indicateurs */
+  .kpis { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .kpis:has(#kpi-attente[hidden]) { grid-template-columns: 1.3fr 1fr; }
+  .kpi[hidden] { display: none; }
+  .kpi { display: flex; align-items: center; gap: 18px; margin: 0; }
+  .kpi small { display: block; color: var(--muted); font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; }
+  .kpi b { display: block; font-size: 2rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; margin-top: 2px; }
+  .kpi-icon { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-size: 1.4rem; flex: none; }
+  .ring { --pct: 0; --col: var(--line); width: 92px; height: 92px; border-radius: 50%; flex: none; display: grid; place-items: center;
+    background: conic-gradient(var(--col) calc(var(--pct) * 1%), var(--line) 0); transition: --pct .6s; }
+  .ring span { width: 72px; height: 72px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-weight: 800; font-size: 1.25rem; }
+  .badge { display: inline-block; font-size: .78rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); }
+  .badge.Alerte { background: var(--alerte-soft); color: var(--alerte); }
+  .badge.Fragile { background: var(--fragile-soft); color: var(--fragile); }
+  .badge.Correct { background: var(--correct-soft); color: var(--correct); }
+  .badge.Solide { background: var(--solide-soft); color: var(--solide); }
+
+  .section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* Thèmes */
+  .theme { display: grid; grid-template-columns: minmax(170px, 260px) 1fr 54px 84px; gap: 14px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); }
+  .theme:first-child { border-top: 0; }
+  .theme-name { font-weight: 600; font-size: .92rem; }
+  .track { height: 12px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .track div { height: 100%; width: 0; border-radius: 99px; transition: width .6s ease; }
+  .theme .score { font-weight: 800; text-align: right; }
+  .theme .badge { justify-self: start; }
+  .fill-Alerte { background: var(--alerte); } .fill-Fragile { background: var(--fragile); } .fill-Correct { background: var(--correct); } .fill-Solide { background: var(--solide); }
+  .scale-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: .8rem; color: var(--muted); align-items: center; }
+
+  /* Tableau */
+  .table-wrap { overflow: auto; max-height: 520px; border: 1px solid var(--line); border-radius: 12px; }
+  table { border-collapse: separate; border-spacing: 0; font-size: .83rem; white-space: nowrap; width: 100%; }
+  th, td { padding: 9px 10px; text-align: center; border-bottom: 1px solid var(--line); }
+  th { background: #f7f9f7; color: var(--muted); font-weight: 700; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0; z-index: 1; }
+  tbody tr:hover td { background: #fafcfa; }
+  td.txt { text-align: left; white-space: normal; min-width: 170px; }
+  td.note { font-weight: 700; padding: 5px; }
+  td.note span { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; }
+  .n1 { background: #fbe1de; color: #a32d24; } .n2 { background: #fde9d6; color: #a95a12; } .n3 { background: #f6efcf; color: #85690b; }
+  .n4 { background: #e2f1dc; color: #3f7a2f; } .n5 { background: #d3eddd; color: #146b39; }
+  .empty { padding: 36px; color: var(--muted); text-align: center; }
+
+  @media (max-width: 860px) { .kpis { grid-template-columns: 1fr; } }
+  @media (max-width: 620px) {
+    .theme { grid-template-columns: 1fr auto auto; gap: 6px 10px; }
+    .theme .track { grid-column: 1 / -1; grid-row: 2; }
+    .card { padding: 18px; }
+  }
 </style>
 </head>
 <body>
-<header><div>
-  <h1>Résultats du baromètre social — KAMA CI</h1>
-  <p id="fichier">Accès réservé</p>
-  <p><a href="/">← Retour au questionnaire</a></p>
-</div></header>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="topbar">
+      <div class="brand"><span class="brand-mark">K</span> KAMA Côte d'Ivoire</div>
+      <a class="back" href="/">← Questionnaire</a>
+    </div>
+    <h1>Résultats du baromètre social</h1>
+    <p id="fichier">Espace réservé aux responsables</p>
+  </div>
+</header>
 
 <main>
   <form id="login" class="card login">
+    <div class="lock">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    </div>
     <h2>Accès responsable</h2>
-    <label for="code">Code d'accès</label>
-    <input type="password" id="code" required autocomplete="current-password">
+    <p class="sub">Saisissez votre code d'accès pour consulter les résultats.</p>
+    <label for="code" hidden>Code d'accès</label>
+    <input type="password" id="code" required autocomplete="current-password" placeholder="Code d'accès">
     <p id="login-error" class="error"></p>
     <button type="submit">Voir les résultats</button>
   </form>
 
   <div id="view" hidden>
     <div class="kpis">
-      <div class="kpi"><small>Répondants</small><b id="k-rep">–</b></div>
-      <div class="kpi"><small>Score global /5</small><b id="k-score">–</b></div>
-      <div class="kpi"><small>Lecture</small><b id="k-lecture">–</b></div>
-      <div class="kpi"><small>En attente d'écriture</small><b id="k-attente">0</b></div>
+      <div class="card kpi">
+        <div class="ring" id="ring"><span id="k-score">–</span></div>
+        <div>
+          <small>Score global /5</small>
+          <div style="margin-top:6px"><span class="badge" id="k-lecture">–</span></div>
+        </div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-icon">👥</div>
+        <div><small>Répondants</small><b id="k-rep">–</b></div>
+      </div>
+      <div class="card kpi" id="kpi-attente">
+        <div class="kpi-icon">⏳</div>
+        <div><small>En attente d'écriture</small><b id="k-attente">0</b></div>
+      </div>
     </div>
 
     <div class="card">
-      <div class="actions" style="justify-content: space-between; margin-bottom: 8px">
-        <h2 style="margin:0">Scores par thème</h2>
+      <div class="section-head">
+        <div>
+          <h2>Scores par thème</h2>
+          <p class="sub">Moyenne des notes sur 5</p>
+        </div>
         <div class="actions">
-          <button type="button" id="refresh">Actualiser</button>
-          <button type="button" id="download">Télécharger le fichier Excel</button>
+          <button type="button" class="ghost" id="refresh">↻ Actualiser</button>
+          <button type="button" id="download">⬇ Télécharger le fichier Excel</button>
         </div>
       </div>
       <div id="themes"></div>
-      <p class="muted">Alerte &lt; 2,5 · Fragile 2,5 à 3,4 · Correct 3,5 à 4,2 · Solide &gt; 4,2</p>
+      <div class="scale-legend">
+        <span class="badge Alerte">Alerte &lt; 2,5</span>
+        <span class="badge Fragile">Fragile 2,5 – 3,4</span>
+        <span class="badge Correct">Correct 3,5 – 4,2</span>
+        <span class="badge Solide">Solide &gt; 4,2</span>
+      </div>
     </div>
 
     <div class="card">
-      <h2>Réponses enregistrées — feuille « Saisie des réponses »</h2>
+      <div class="section-head">
+        <div>
+          <h2>Réponses enregistrées</h2>
+          <p class="sub">Contenu de la feuille « Saisie des réponses »</p>
+        </div>
+      </div>
       <div class="table-wrap"><table id="table"></table></div>
     </div>
   </div>
@@ -91,6 +181,7 @@
 <script>
 let code = sessionStorage.getItem("code") || "";
 const fmt = v => v == null ? "–" : v.toFixed(2).replace(".", ",");
+const COULEURS = { Alerte: "var(--alerte)", Fragile: "var(--fragile)", Correct: "var(--correct)", Solide: "var(--solide)" };
 
 function h(tag, text, cls) {
   const e = document.createElement(tag);
@@ -115,48 +206,58 @@ async function charger() {
   }
   const d = await res.json();
   sessionStorage.setItem("code", code);
+  document.getElementById("login-error").textContent = "";
   document.getElementById("login").hidden = true;
   document.getElementById("view").hidden = false;
 
-  document.getElementById("fichier").textContent = "Fichier : " + d.fichier;
+  document.getElementById("fichier").textContent = "Source : " + d.fichier;
   document.getElementById("k-rep").textContent = d.repondants;
-  document.getElementById("k-score").textContent = fmt(d.global.score);
-  const kl = document.getElementById("k-lecture");
-  kl.textContent = d.global.lecture || "–";
-  kl.className = d.global.lecture;
   document.getElementById("k-attente").textContent = d.en_attente;
+  document.getElementById("kpi-attente").hidden = d.mode === "redis";
+  document.getElementById("k-score").textContent = fmt(d.global.score);
+  const ring = document.getElementById("ring");
+  ring.style.setProperty("--pct", d.global.score == null ? 0 : d.global.score / 5 * 100);
+  ring.style.setProperty("--col", COULEURS[d.global.lecture] || "var(--line)");
+  const kl = document.getElementById("k-lecture");
+  kl.textContent = d.global.lecture || "Pas encore de données";
+  kl.className = "badge " + (d.global.lecture || "");
 
-  const themes = document.getElementById("themes");
-  themes.replaceChildren(...d.themes.map(t => {
+  document.getElementById("themes").replaceChildren(...d.themes.map(t => {
     const row = h("div", null, "theme");
     const track = h("div", null, "track");
-    const fill = h("div", null, "bg-" + t.lecture);
-    fill.style.width = t.score == null ? "0" : (t.score / 5 * 100) + "%";
+    const fill = h("div", null, "fill-" + t.lecture);
     track.append(fill);
-    row.append(h("span", t.theme), track, h("b", fmt(t.score)), h("span", t.lecture || "–", "badge " + t.lecture));
+    requestAnimationFrame(() => { fill.style.width = t.score == null ? "0" : (t.score / 5 * 100) + "%"; });
+    row.append(h("span", t.theme, "theme-name"), track, h("span", fmt(t.score), "score"), h("span", t.lecture || "–", "badge " + t.lecture));
     return row;
   }));
 
   const table = document.getElementById("table");
-  const nbQ = d.themes.length ? d.reponses[0]?.notes.length ?? 24 : 24;
-  const head = h("tr");
-  ["Ligne Excel", "ID", "Service", "Ancienneté"].forEach(t => head.append(h("th", t)));
+  const nbQ = d.reponses[0]?.notes.length ?? 24;
+  const thead = h("thead"), head = h("tr");
+  ["Ligne", "ID", "Service", "Ancienneté"].forEach(t => head.append(h("th", t)));
   for (let i = 1; i <= nbQ; i++) head.append(h("th", "Q" + i));
   head.append(h("th", "Commentaire"));
-  const rows = d.reponses.map(r => {
+  thead.append(head);
+  const tbody = h("tbody");
+  for (const r of d.reponses) {
     const tr = h("tr");
     tr.append(h("td", r.ligne), h("td", r.id ?? ""), h("td", r.service ?? "", "txt"), h("td", r.anciennete ?? ""));
-    r.notes.forEach(n => tr.append(h("td", n ?? "")));
+    for (const n of r.notes) {
+      const td = h("td", null, "note");
+      if (n != null) td.append(h("span", n, "n" + n));
+      tr.append(td);
+    }
     tr.append(h("td", r.commentaire ?? "", "txt"));
-    return tr;
-  });
-  if (!rows.length) {
-    const tr = h("tr"), td = h("td", "Aucune réponse pour le moment.", "txt");
+    tbody.append(tr);
+  }
+  if (!d.reponses.length) {
+    const tr = h("tr"), td = h("td", "Aucune réponse pour le moment.", "empty");
     td.colSpan = nbQ + 5;
     tr.append(td);
-    rows.push(tr);
+    tbody.append(tr);
   }
-  table.replaceChildren(head, ...rows);
+  table.replaceChildren(thead, tbody);
 }
 
 document.getElementById("login").addEventListener("submit", e => {
@@ -167,6 +268,7 @@ document.getElementById("login").addEventListener("submit", e => {
 document.getElementById("refresh").addEventListener("click", charger);
 document.getElementById("download").addEventListener("click", async e => {
   const btn = e.currentTarget;
+  const label = btn.textContent;
   btn.disabled = true;
   btn.textContent = "Préparation…";
   try {
@@ -180,7 +282,7 @@ document.getElementById("download").addEventListener("click", async e => {
     alert("Téléchargement impossible : " + err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = "Télécharger le fichier Excel";
+    btn.textContent = label;
   }
 });
 if (code) charger();

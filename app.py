@@ -173,6 +173,7 @@ def resultats(x_admin_code: str | None = Header(default=None)):
     _check_admin(x_admin_code)
     store = _stockage()
     data = excel_store.calcul_resultats(QUESTIONS, store.lister(len(QUESTIONS)))
+    data["mode"] = store.mode
     if store.mode == "excel":
         data["fichier"] = EXCEL_PATH
         data["en_attente"] = len(_load_pending())

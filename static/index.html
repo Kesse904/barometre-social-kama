@@ -5,107 +5,207 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Baromètre social KAMA CI</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f4f6f8; --card: #ffffff; --text: #1d2733; --muted: #5d6b7a;
-    --primary: #0b5d3b; --primary-soft: #e3f1ea; --border: #d9e0e6; --error: #b3261e;
+    --bg: #f3f5f2; --card: #ffffff; --text: #17231c; --muted: #637168; --line: #e1e6e2;
+    --primary: #0b5d3b; --primary-dark: #073f28; --primary-soft: #e6f2ec; --accent: #f2b33d;
+    --error: #c0362c; --error-soft: #fdecea;
+    --n1: #d9483b; --n2: #ef8a3c; --n3: #c9a227; --n4: #6cae5a; --n5: #1f8a4c;
+    --radius: 16px; --shadow: 0 1px 2px rgba(16, 40, 28, .05), 0 8px 24px rgba(16, 40, 28, .06);
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); }
-  header { background: var(--primary); color: #fff; padding: 20px 16px; }
-  header h1 { margin: 0 auto; max-width: 760px; font-size: 1.4rem; }
-  header p { margin: 6px auto 0; max-width: 760px; opacity: .9; font-size: .95rem; }
-  main { max-width: 760px; margin: 0 auto; padding: 16px; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
-  .progress { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0; }
-  .bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
-  .bar div { height: 100%; width: 0; background: var(--primary); transition: width .2s; }
-  .progress small { color: var(--muted); display: block; margin-top: 4px; }
-  h2 { font-size: 1.1rem; margin: 0 0 12px; color: var(--primary); }
-  label.field { display: block; font-weight: 600; margin: 12px 0 6px; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+  /* En-tête */
+  .hero { background: radial-gradient(120% 140% at 100% 0%, #13804f 0%, var(--primary) 45%, var(--primary-dark) 100%); color: #fff; padding: 28px 16px 84px; position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; right: -80px; top: -80px; width: 260px; height: 260px; border-radius: 50%; border: 40px solid rgba(255,255,255,.06); }
+  .hero-inner { max-width: 780px; margin: 0 auto; position: relative; z-index: 1; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; opacity: .95; }
+  .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); color: var(--primary-dark); display: grid; place-items: center; font-weight: 800; font-size: .95rem; letter-spacing: 0; }
+  .hero h1 { margin: 22px 0 8px; font-size: clamp(1.6rem, 4.5vw, 2.3rem); line-height: 1.15; font-weight: 800; letter-spacing: -.02em; }
+  .hero p { margin: 0; max-width: 560px; opacity: .88; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18); font-size: .82rem; font-weight: 600; }
+
+  main { max-width: 780px; margin: -60px auto 0; padding: 0 16px 24px; position: relative; z-index: 2; }
+
+  /* Progression */
+  .progress { position: sticky; top: 0; z-index: 10; padding: 10px 0; margin-bottom: 6px; }
+  .progress-card { background: rgba(255,255,255,.92); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 999px; padding: 10px 16px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); }
+  .bar { flex: 1; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .bar div { height: 100%; width: 0; background: linear-gradient(90deg, var(--primary), #1fa463); border-radius: 99px; transition: width .35s ease; }
+  .progress small { font-weight: 700; font-size: .82rem; color: var(--primary); white-space: nowrap; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .step { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; font-weight: 800; font-size: .9rem; transition: background .2s, color .2s; }
+  .card.complete .step { background: var(--primary); color: #fff; }
+  h2 { font-size: 1.12rem; margin: 0; font-weight: 700; letter-spacing: -.01em; }
+  .card-sub { color: var(--muted); font-size: .88rem; margin: 2px 0 0; }
+  .theme-count { margin-left: auto; font-size: .78rem; font-weight: 700; color: var(--muted); background: var(--bg); padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+  .card.complete .theme-count { color: var(--primary); background: var(--primary-soft); }
+
+  /* Profil */
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+  label.field { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 6px; }
   input[type=text], input[type=number], select, textarea {
-    width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font: inherit;
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; font: inherit; color: var(--text); background: #fbfcfb; transition: border-color .15s, box-shadow .15s, background .15s;
   }
-  textarea { min-height: 100px; resize: vertical; }
-  .question { padding: 14px 0; border-top: 1px solid var(--border); }
-  .question:first-of-type { border-top: 0; }
-  .question p { margin: 0 0 10px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px var(--primary-soft); }
+  textarea { min-height: 110px; resize: vertical; }
+
+  /* Échelle */
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 14px; font-size: .8rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+  .question { padding: 18px 0; border-top: 1px dashed var(--line); scroll-margin-top: 90px; }
+  .question:first-of-type { border-top: 0; padding-top: 14px; }
+  .question p { margin: 0 0 12px; font-weight: 500; }
+  .question p b { color: var(--primary); margin-right: 4px; }
   .question.missing p { color: var(--error); }
-  .scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-  .scale label { cursor: pointer; }
-  .scale input { position: absolute; opacity: 0; }
+  .question.missing .scale span { border-color: #f1b8b2; }
+  .scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .scale label { cursor: pointer; position: relative; }
+  .scale input { position: absolute; opacity: 0; pointer-events: none; }
   .scale span {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-    min-height: 56px; padding: 6px 2px; border: 1px solid var(--border); border-radius: 6px;
-    text-align: center; font-size: .72rem; color: var(--muted); background: #fff;
+    min-height: 62px; padding: 8px 4px; border: 1.5px solid var(--line); border-radius: 12px;
+    text-align: center; font-size: .7rem; line-height: 1.2; color: var(--muted); background: #fff;
+    transition: transform .12s, border-color .15s, background .15s, color .15s, box-shadow .15s;
   }
-  .scale span b { font-size: 1.1rem; color: var(--text); }
-  .scale input:checked + span { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .scale label:hover span { border-color: #b9c6bd; transform: translateY(-1px); }
+  .scale span b { font-size: 1.15rem; font-weight: 800; color: var(--text); }
+  .scale input:checked + span { color: #fff; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,.12); }
   .scale input:checked + span b { color: #fff; }
-  .scale input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
-  .legend { font-size: .85rem; color: var(--muted); }
+  .scale label:nth-child(1) input:checked + span { background: var(--n1); border-color: var(--n1); }
+  .scale label:nth-child(2) input:checked + span { background: var(--n2); border-color: var(--n2); }
+  .scale label:nth-child(3) input:checked + span { background: var(--n3); border-color: var(--n3); }
+  .scale label:nth-child(4) input:checked + span { background: var(--n4); border-color: var(--n4); }
+  .scale label:nth-child(5) input:checked + span { background: var(--n5); border-color: var(--n5); }
+  .scale input:focus-visible + span { outline: 3px solid var(--primary-soft); outline-offset: 2px; }
+
+  /* Envoi */
+  .submit-card { text-align: center; }
+  .submit-card .card-sub { margin-bottom: 16px; }
+  .error { color: var(--error); background: var(--error-soft); font-weight: 600; font-size: .9rem; border-radius: 10px; padding: 10px 14px; margin: 0 0 14px; }
+  .error:empty { display: none; }
   button {
-    background: var(--primary); color: #fff; border: 0; border-radius: 6px;
-    padding: 14px 22px; font: inherit; font-weight: 600; cursor: pointer; width: 100%;
+    background: var(--primary); color: #fff; border: 0; border-radius: 12px;
+    padding: 15px 22px; font: inherit; font-weight: 700; font-size: 1rem; cursor: pointer; width: 100%;
+    box-shadow: 0 8px 20px rgba(11, 93, 59, .25); transition: background .15s, transform .12s;
   }
-  button:disabled { opacity: .6; cursor: wait; }
-  .error { color: var(--error); font-weight: 600; }
-  .done { text-align: center; }
-  .done .icon { font-size: 3rem; }
-  footer { text-align: center; padding: 8px 16px 24px; font-size: .8rem; }
-  footer a { color: var(--muted); }
-  @media (max-width: 480px) { .scale span { font-size: 0; min-height: 44px; } .scale span b { font-size: 1.1rem; } }
+  button:hover { background: var(--primary-dark); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .65; cursor: wait; }
+
+  /* Merci */
+  .done { text-align: center; padding: 48px 24px; }
+  .done-icon { width: 76px; height: 76px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; margin: 0 auto 18px; }
+  .done h2 { font-size: 1.5rem; margin-bottom: 8px; }
+  .done p { color: var(--muted); max-width: 420px; margin: 0 auto; }
+
+  footer { text-align: center; padding: 8px 16px 32px; font-size: .8rem; color: var(--muted); }
+  footer a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted currentColor; }
+  footer a:hover { color: var(--primary); }
+
+  @media (max-width: 560px) {
+    .card { padding: 18px; }
+    .fields { grid-template-columns: 1fr; }
+    .scale { gap: 6px; }
+    .scale span { font-size: 0; min-height: 48px; }
+    .scale span b { font-size: 1.1rem; }
+    .scale-hint { display: flex !important; }
+  }
+  .scale-hint { display: none; justify-content: space-between; font-size: .72rem; color: var(--muted); margin-top: 6px; }
 </style>
 </head>
 <body>
-<header>
-  <h1>Baromètre social — KAMA Côte d'Ivoire</h1>
-  <p>Questionnaire anonyme · environ 5 minutes · merci pour votre sincérité</p>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="brand"><span class="brand-mark">K</span> KAMA Côte d'Ivoire</div>
+    <h1>Baromètre social</h1>
+    <p>Votre avis compte. Aidez-nous à mesurer le climat social et à prioriser les actions qui améliorent le quotidien de chacun.</p>
+    <div class="pills">
+      <span class="pill">🔒 100 % anonyme</span>
+      <span class="pill">⏱ Environ 5 minutes</span>
+      <span class="pill" id="pill-questions">📝 Questions</span>
+    </div>
+  </div>
 </header>
 
 <main>
   <div id="form-view">
     <div class="progress">
-      <div class="bar"><div id="bar"></div></div>
-      <small id="progress-text">0 réponse</small>
+      <div class="progress-card">
+        <div class="bar"><div id="bar"></div></div>
+        <small id="progress-text">0 réponse</small>
+      </div>
     </div>
 
     <form id="form" novalidate>
-      <div class="card">
-        <h2>Vous</h2>
-        <p class="legend">Ces informations servent uniquement aux statistiques. Votre nom n'est jamais demandé.</p>
-        <label class="field" for="service">Département / Service</label>
-        <div id="service-wrap"><input type="text" id="service" required maxlength="120" autocomplete="off"></div>
-        <label class="field" for="anciennete">Ancienneté (en années)</label>
-        <input type="number" id="anciennete" required min="0" max="60" step="0.5" inputmode="decimal">
-      </div>
-
-      <div class="card legend">
-        Pour chaque affirmation, choisissez une note :
-        <b>1</b> Pas du tout d'accord · <b>2</b> Plutôt pas d'accord · <b>3</b> Neutre ·
-        <b>4</b> Plutôt d'accord · <b>5</b> Tout à fait d'accord
+      <div class="card" id="profil">
+        <div class="card-head">
+          <span class="step">👤</span>
+          <div>
+            <h2>Avant de commencer</h2>
+            <p class="card-sub">Uniquement pour les statistiques — votre nom n'est jamais demandé.</p>
+          </div>
+        </div>
+        <div class="fields">
+          <div>
+            <label class="field" for="service">Département / Service</label>
+            <div id="service-wrap"><input type="text" id="service" required maxlength="120" autocomplete="off" placeholder="Ex. : Logistique"></div>
+          </div>
+          <div>
+            <label class="field" for="anciennete">Ancienneté (en années)</label>
+            <input type="number" id="anciennete" required min="0" max="60" step="0.5" inputmode="decimal" placeholder="Ex. : 3">
+          </div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--n1)"></i>1 Pas du tout d'accord</span>
+          <span><i style="background:var(--n2)"></i>2 Plutôt pas d'accord</span>
+          <span><i style="background:var(--n3)"></i>3 Neutre</span>
+          <span><i style="background:var(--n4)"></i>4 Plutôt d'accord</span>
+          <span><i style="background:var(--n5)"></i>5 Tout à fait d'accord</span>
+        </div>
       </div>
 
       <div id="themes"></div>
 
       <div class="card">
-        <h2>Commentaire libre (facultatif)</h2>
-        <textarea id="commentaire" maxlength="2000" placeholder="Une remarque, une suggestion…"></textarea>
+        <div class="card-head">
+          <span class="step">💬</span>
+          <div>
+            <h2>Commentaire libre</h2>
+            <p class="card-sub">Facultatif — une remarque, une idée, une suggestion.</p>
+          </div>
+        </div>
+        <textarea id="commentaire" maxlength="2000" placeholder="Écrivez ici…" style="margin-top:14px"></textarea>
       </div>
 
-      <p id="error" class="error" role="alert"></p>
-      <button type="submit" id="submit">Soumettre mes réponses</button>
+      <div class="card submit-card">
+        <h2>Prêt à envoyer ?</h2>
+        <p class="card-sub">Vos réponses sont enregistrées de façon anonyme.</p>
+        <p id="error" class="error" role="alert"></p>
+        <button type="submit" id="submit">Envoyer mes réponses</button>
+      </div>
     </form>
   </div>
 
   <div id="done-view" class="card done" hidden>
-    <div class="icon">✅</div>
-    <h2>Merci !</h2>
-    <p>Vos réponses ont bien été enregistrées.</p>
+    <div class="done-icon">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <h2>Merci pour votre participation !</h2>
+    <p>Vos réponses ont bien été enregistrées. Elles aideront à construire un meilleur environnement de travail chez KAMA CI.</p>
   </div>
 </main>
 
-<footer><a href="/resultats">Espace responsable</a></footer>
+<footer>Baromètre social KAMA CI · <a href="/resultats">Espace responsable</a></footer>
 
 <script>
 const LABELS = ["Pas du tout d'accord", "Plutôt pas d'accord", "Neutre", "Plutôt d'accord", "Tout à fait d'accord"];
@@ -122,6 +222,7 @@ async function load() {
   const res = await fetch("/api/questionnaire");
   const data = await res.json();
   questions = data.questions;
+  document.getElementById("pill-questions").textContent = `📝 ${questions.length} questions`;
 
   if (data.services.length) {
     const select = el("select", { id: "service", required: "" }, el("option", { value: "" }, "— Choisir —"));
@@ -130,39 +231,56 @@ async function load() {
   }
 
   const container = document.getElementById("themes");
-  let card = null, currentTheme = null;
-  for (const q of questions) {
-    if (q.theme !== currentTheme) {
-      currentTheme = q.theme;
-      card = el("div", { class: "card" }, el("h2", {}, q.theme));
-      container.append(card);
+  const themes = [...new Set(questions.map(q => q.theme))];
+  themes.forEach((theme, t) => {
+    const items = questions.filter(q => q.theme === theme);
+    const card = el("div", { class: "card theme", "data-theme": t },
+      el("div", { class: "card-head" },
+        el("span", { class: "step" }, String(t + 1)),
+        el("div", {}, el("h2", {}, theme), el("p", { class: "card-sub" }, `Thème ${t + 1} sur ${themes.length}`)),
+        el("span", { class: "theme-count" }, `0 / ${items.length}`)));
+    for (const q of items) {
+      const scale = el("div", { class: "scale", role: "radiogroup", "aria-label": `Question ${q.numero}` });
+      LABELS.forEach((label, i) => {
+        scale.append(el("label", {},
+          el("input", { type: "radio", name: `q${q.numero}`, value: i + 1 }),
+          el("span", { title: label }, el("b", {}, String(i + 1)), label)));
+      });
+      card.append(el("div", { class: "question", id: `bloc-q${q.numero}`, "data-theme": t },
+        el("p", {}, el("b", {}, `${q.numero}.`), q.texte), scale,
+        el("div", { class: "scale-hint" }, el("span", {}, "Pas du tout d'accord"), el("span", {}, "Tout à fait d'accord"))));
     }
-    const scale = el("div", { class: "scale", role: "radiogroup", "aria-label": `Question ${q.numero}` });
-    LABELS.forEach((label, i) => {
-      scale.append(el("label", {},
-        el("input", { type: "radio", name: `q${q.numero}`, value: i + 1 }),
-        el("span", { title: label }, el("b", {}, String(i + 1)), label)));
-    });
-    card.append(el("div", { class: "question", id: `bloc-q${q.numero}` },
-      el("p", {}, `${q.numero}. ${q.texte}`), scale));
-  }
+    container.append(card);
+  });
   updateProgress();
 }
 
-function answered() {
-  return questions.filter(q => document.querySelector(`input[name=q${q.numero}]:checked`)).length;
+function isAnswered(q) {
+  return !!document.querySelector(`input[name=q${q.numero}]:checked`);
 }
 
 function updateProgress() {
-  const n = answered();
+  const n = questions.filter(isAnswered).length;
   document.getElementById("bar").style.width = `${(n / questions.length) * 100}%`;
-  document.getElementById("progress-text").textContent = `${n} / ${questions.length} questions`;
+  document.getElementById("progress-text").textContent = `${n} / ${questions.length}`;
+  document.querySelectorAll(".card.theme").forEach(card => {
+    const items = [...card.querySelectorAll(".question")];
+    const done = items.filter(b => b.querySelector("input:checked")).length;
+    card.querySelector(".theme-count").textContent = done === items.length ? "✓ Terminé" : `${done} / ${items.length}`;
+    card.classList.toggle("complete", done === items.length);
+  });
 }
 
 document.getElementById("form").addEventListener("change", e => {
-  if (e.target.type === "radio") {
-    e.target.closest(".question").classList.remove("missing");
-    updateProgress();
+  if (e.target.type !== "radio") return;
+  const bloc = e.target.closest(".question");
+  bloc.classList.remove("missing");
+  updateProgress();
+  // Amène la question suivante à l'écran si elle n'a pas encore de réponse
+  const blocs = [...document.querySelectorAll(".question")];
+  const next = blocs[blocs.indexOf(bloc) + 1];
+  if (next && !next.querySelector("input:checked")) {
+    setTimeout(() => next.scrollIntoView({ behavior: "smooth", block: "center" }), 180);
   }
 });
 
@@ -175,21 +293,22 @@ document.getElementById("form").addEventListener("submit", async e => {
   const ancienneteRaw = document.getElementById("anciennete").value;
   if (!service || ancienneteRaw === "" || +ancienneteRaw < 0 || +ancienneteRaw > 60) {
     error.textContent = "Merci d'indiquer votre service et votre ancienneté (0 à 60 ans).";
-    document.getElementById(service ? "anciennete" : "service").focus();
+    document.getElementById("profil").scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => document.getElementById(service ? "anciennete" : "service").focus({ preventScroll: true }), 400);
     return;
   }
 
   const notes = [];
-  let firstMissing = null;
+  let firstMissing = null, missing = 0;
   for (const q of questions) {
     const checked = document.querySelector(`input[name=q${q.numero}]:checked`);
     const bloc = document.getElementById(`bloc-q${q.numero}`);
     bloc.classList.toggle("missing", !checked);
-    if (!checked && !firstMissing) firstMissing = bloc;
+    if (!checked) { missing++; firstMissing ??= bloc; }
     notes.push(checked ? +checked.value : null);
   }
   if (firstMissing) {
-    error.textContent = "Merci de répondre à toutes les questions (en rouge).";
+    error.textContent = missing === 1 ? "Il reste 1 question sans réponse (en rouge)." : `Il reste ${missing} questions sans réponse (en rouge).`;
     firstMissing.scrollIntoView({ behavior: "smooth", block: "center" });
     return;
   }
@@ -203,14 +322,17 @@ document.getElementById("form").addEventListener("submit", async e => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ service, anciennete: +ancienneteRaw, notes, commentaire: document.getElementById("commentaire").value }),
     });
-    if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+    if (!res.ok) {
+      const detail = (await res.json().catch(() => ({}))).detail;
+      throw new Error(typeof detail === "string" ? detail : res.statusText);
+    }
     document.getElementById("form-view").hidden = true;
     document.getElementById("done-view").hidden = false;
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (err) {
-    error.textContent = "L'envoi a échoué, merci de réessayer. (" + (typeof err.message === "string" ? err.message : "erreur") + ")";
+    error.textContent = "L'envoi a échoué, merci de réessayer. (" + err.message + ")";
     btn.disabled = false;
-    btn.textContent = "Soumettre mes réponses";
+    btn.textContent = "Envoyer mes réponses";
   }
 });
 
