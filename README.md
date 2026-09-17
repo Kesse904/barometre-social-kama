@@ -14,6 +14,18 @@ au premier lancement ; y définir le chemin du classeur et le code d'accès), pu
 - depuis un autre poste du réseau : `http://<adresse-IP-de-ce-PC>:8080`
   (autoriser le port 8080 dans le pare-feu Windows si nécessaire)
 
+## Hébergement sur Vercel
+
+Le disque de Vercel n'est pas persistant : les réponses y sont stockées dans **Upstash Redis**
+et le fichier Excel (modèle `modele/Barometre_social_KAMA_CI.xlsx` + toutes les réponses) est
+généré au clic sur « Télécharger le fichier Excel » de la page Résultats.
+
+1. Projet Vercel → **Storage** → ajouter **Upstash for Redis** (Marketplace) et le connecter au
+   projet : les variables `KV_REST_API_URL` / `KV_REST_API_TOKEN` sont créées automatiquement.
+2. Projet Vercel → **Settings → Environment Variables** : ajouter `BAROMETRE_ADMIN_CODE`
+   (et éventuellement `BAROMETRE_SERVICES`).
+3. Redéployer. Tant que Redis n'est pas connecté, les soumissions sont refusées (aucune perte silencieuse).
+
 ## Page des résultats (responsables)
 
 http://localhost:8080/resultats — protégée par le code défini dans `config.local.bat`

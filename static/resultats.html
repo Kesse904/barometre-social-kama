@@ -72,7 +72,7 @@
         <h2 style="margin:0">Scores par thème</h2>
         <div class="actions">
           <button type="button" id="refresh">Actualiser</button>
-          <a class="btn" id="download" href="#">Télécharger le fichier Excel</a>
+          <button type="button" id="download">Télécharger le fichier Excel</button>
         </div>
       </div>
       <div id="themes"></div>
@@ -106,13 +106,17 @@ async function charger() {
     if (code) document.getElementById("login-error").textContent = "Code d'accès incorrect.";
     return;
   }
+  if (!res.ok) {
+    const msg = (await res.json().catch(() => ({}))).detail || res.statusText;
+    document.getElementById("login-error").textContent = "Erreur : " + msg;
+    return;
+  }
   const d = await res.json();
   sessionStorage.setItem("code", code);
   document.getElementById("login").hidden = true;
   document.getElementById("view").hidden = false;
 
   document.getElementById("fichier").textContent = "Fichier : " + d.fichier;
-  document.getElementById("download").href = "/api/excel?code=" + encodeURIComponent(code);
   document.getElementById("k-rep").textContent = d.repondants;
   document.getElementById("k-score").textContent = fmt(d.global.score);
   const kl = document.getElementById("k-lecture");
@@ -159,6 +163,24 @@ document.getElementById("login").addEventListener("submit", e => {
   charger();
 });
 document.getElementById("refresh").addEventListener("click", charger);
+document.getElementById("download").addEventListener("click", async e => {
+  const btn = e.currentTarget;
+  btn.disabled = true;
+  btn.textContent = "Préparation…";
+  try {
+    const res = await fetch("/api/excel", { headers: { "X-Admin-Code": code } });
+    if (!res.ok) throw new Error(res.statusText);
+    const url = URL.createObjectURL(await res.blob());
+    const a = Object.assign(document.createElement("a"), { href: url, download: "Barometre_social_KAMA_CI.xlsx" });
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert("Téléchargement impossible : " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Télécharger le fichier Excel";
+  }
+});
 if (code) charger();
 </script>
 </body>

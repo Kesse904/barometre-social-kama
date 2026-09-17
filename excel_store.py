@@ -179,7 +179,6 @@ def append_reponses(path: str, reponses: list[dict], nb_questions: int) -> list[
         return lignes
 
 
-
 def lecture(score: float | None) -> str:
     if score is None:
         return ""
@@ -192,15 +191,14 @@ def lecture(score: float | None) -> str:
     return "Solide"
 
 
-def read_resultats(path: str, questions: list[dict]) -> dict:
-    """Relit la feuille de saisie et calcule les scores comme l'onglet "Résultats"."""
-    nb = len(questions)
+def read_reponses(path: str, nb_questions: int) -> list[dict]:
+    """Relit les réponses saisies dans la feuille de saisie."""
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     ws = wb[SHEET_SAISIE]
     lignes = []
     for num_ligne, row in enumerate(ws.iter_rows(min_row=FIRST_DATA_ROW, values_only=True), start=FIRST_DATA_ROW):
         row = list(row) + [None] * (28 - len(row))
-        notes = row[3 : 3 + nb]
+        notes = row[3 : 3 + nb_questions]
         if not any(isinstance(n, (int, float)) for n in notes):
             continue
         lignes.append({
@@ -212,8 +210,12 @@ def read_resultats(path: str, questions: list[dict]) -> dict:
             "commentaire": row[col_to_index(COL_COMMENTAIRE) - 1],
         })
     wb.close()
+    return lignes
 
-    # Score d'un thème = moyenne de toutes ses notes ; score global = moyenne des thèmes
+
+def calcul_resultats(questions: list[dict], lignes: list[dict]) -> dict:
+    """Calcule les scores comme l'onglet "Résultats" : score d'un thème = moyenne de
+    toutes ses notes ; score global = moyenne des thèmes."""
     resultat_themes = []
     for q_theme in dict.fromkeys(q["theme"] for q in questions):
         idx = [q["numero"] - 1 for q in questions if q["theme"] == q_theme]

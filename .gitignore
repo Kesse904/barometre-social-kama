@@ -1,6 +1,8 @@
 # Données de l'enquête (réponses des collaborateurs) : jamais dans Git
 donnees/
 *.xlsx
+# Modèle vierge (aucune réponse) utilisé sur Vercel
+!modele/Barometre_social_KAMA_CI.xlsx
 ~$*
 
 # Configuration locale (code d'accès)
@@ -9,3 +11,4 @@ config.local.bat
 __pycache__/
 *.pyc
 .venv/
+.vercel/

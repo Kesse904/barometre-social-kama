@@ -1,8 +1,8 @@
 """Application web du baromètre social KAMA CI.
 
-Les collaborateurs remplissent le questionnaire ; chaque soumission est écrite
-dans la feuille "Saisie des réponses" du classeur Excel, dont l'onglet
-"Résultats" se recalcule automatiquement.
+Les collaborateurs remplissent le questionnaire. En local, chaque soumission est écrite
+dans la feuille "Saisie des réponses" du classeur Excel ; sur Vercel, elle est stockée
+dans Upstash Redis et le classeur est généré à la demande (voir stockage.py).
 """
 import json
 import os
@@ -14,23 +14,28 @@ from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
+from starlette.background import BackgroundTask
 
 import excel_store
+import stockage
 
 BASE_DIR = Path(__file__).resolve().parent
+MODELE = str(BASE_DIR / "modele" / "Barometre_social_KAMA_CI.xlsx")
 EXCEL_PATH = os.environ.get("BAROMETRE_EXCEL", str(Path.home() / "Downloads" / "Barometre_social_KAMA_CI.xlsx"))
-if not Path(EXCEL_PATH).exists():
-    raise SystemExit(f"Classeur introuvable : {EXCEL_PATH} (definir BAROMETRE_EXCEL)")
-DATA_DIR = BASE_DIR / "donnees"
-DATA_DIR.mkdir(exist_ok=True)
 ADMIN_CODE = os.environ.get("BAROMETRE_ADMIN_CODE", "")
-JOURNAL = DATA_DIR / "journal_reponses.jsonl"      # copie de sauvegarde de chaque soumission
-EN_ATTENTE = DATA_DIR / "reponses_en_attente.json"  # réponses non écrites (Excel ouvert)
 SERVICES = [s.strip() for s in os.environ.get("BAROMETRE_SERVICES", "").split(";") if s.strip()]
 
-QUESTIONS = excel_store.read_questionnaire(EXCEL_PATH)
+STOCKAGE = stockage.depuis_environnement(EXCEL_PATH, MODELE)
+if STOCKAGE is not None and STOCKAGE.mode == "excel" and not Path(EXCEL_PATH).exists():
+    raise SystemExit(f"Classeur introuvable : {EXCEL_PATH} (definir BAROMETRE_EXCEL)")
+
+QUESTIONS = excel_store.read_questionnaire(EXCEL_PATH if STOCKAGE and STOCKAGE.mode == "excel" else MODELE)
+
+# Mode Excel uniquement : journal de sauvegarde et réponses en attente (fichier ouvert dans Excel)
+DATA_DIR = BASE_DIR / "donnees"
+JOURNAL = DATA_DIR / "journal_reponses.jsonl"
+EN_ATTENTE = DATA_DIR / "reponses_en_attente.json"
 _pending_lock = threading.Lock()
 
 
@@ -86,12 +91,20 @@ def _retry_loop():
 
 @asynccontextmanager
 async def lifespan(_app):
-    flush_pending()
-    threading.Thread(target=_retry_loop, daemon=True).start()
+    if STOCKAGE is not None and STOCKAGE.mode == "excel":
+        DATA_DIR.mkdir(exist_ok=True)
+        flush_pending()
+        threading.Thread(target=_retry_loop, daemon=True).start()
     yield
 
 
 app = FastAPI(title="Baromètre social KAMA CI", lifespan=lifespan)
+
+
+def _stockage():
+    if STOCKAGE is None:
+        raise HTTPException(503, "Stockage non configuré : connecter une base Upstash Redis au projet Vercel.")
+    return STOCKAGE
 
 
 @app.get("/api/questionnaire")
@@ -101,11 +114,16 @@ def questionnaire():
 
 @app.post("/api/reponses")
 def soumettre(rep: Reponse):
+    store = _stockage()
     data = rep.model_dump()
     data["service"] = data["service"].strip()
     data["commentaire"] = data["commentaire"].strip()
     if data["anciennete"] == int(data["anciennete"]):
         data["anciennete"] = int(data["anciennete"])
+
+    if store.mode == "redis":
+        store.ajouter(data, len(QUESTIONS))
+        return {"statut": "enregistre"}
 
     with JOURNAL.open("a", encoding="utf-8") as f:
         f.write(json.dumps({"date": datetime.now().isoformat(timespec="seconds"), **data}, ensure_ascii=False) + "\n")
@@ -133,16 +151,24 @@ def _check_admin(code: str | None) -> None:
 @app.get("/api/resultats")
 def resultats(x_admin_code: str | None = Header(default=None)):
     _check_admin(x_admin_code)
-    data = excel_store.read_resultats(EXCEL_PATH, QUESTIONS)
-    data["fichier"] = EXCEL_PATH
-    data["en_attente"] = len(_load_pending())
+    store = _stockage()
+    data = excel_store.calcul_resultats(QUESTIONS, store.lister(len(QUESTIONS)))
+    if store.mode == "excel":
+        data["fichier"] = EXCEL_PATH
+        data["en_attente"] = len(_load_pending())
+    else:
+        data["fichier"] = "Base Upstash Redis (Excel généré au téléchargement)"
+        data["en_attente"] = 0
     return data
 
 
 @app.get("/api/excel")
-def telecharger_excel(code: str = ""):
-    _check_admin(code)
-    return FileResponse(EXCEL_PATH, filename=Path(EXCEL_PATH).name)
+def telecharger_excel(x_admin_code: str | None = Header(default=None)):
+    _check_admin(x_admin_code)
+    store = _stockage()
+    path = store.fichier_excel(len(QUESTIONS))
+    nettoyage = BackgroundTask(os.remove, path) if store.mode == "redis" else None
+    return FileResponse(path, filename="Barometre_social_KAMA_CI.xlsx", background=nettoyage)
 
 
 @app.get("/")
@@ -153,9 +179,6 @@ def index():
 @app.get("/resultats")
 def page_resultats():
     return FileResponse(BASE_DIR / "static" / "resultats.html")
-
-
-app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 
 if __name__ == "__main__":
