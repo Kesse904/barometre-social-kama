@@ -74,11 +74,38 @@ class StockageRedis:
         return path
 
 
+class StockageRedisTCP(StockageRedis):
+    """Même stockage, via une URL redis:// ou rediss:// (variable REDIS_URL)."""
+
+    def __init__(self, url: str, modele: str):
+        import redis
+
+        self.client = redis.Redis.from_url(url, decode_responses=True, socket_timeout=10)
+        self.modele = modele
+
+    def _commande(self, *args):
+        return self.client.execute_command(*args)
+
+
+def _variable(*suffixes: str) -> str | None:
+    """Cherche une variable d'environnement par suffixe (Vercel peut ajouter un préfixe)."""
+    for suffixe in suffixes:
+        if os.environ.get(suffixe):
+            return os.environ[suffixe]
+    for nom, valeur in sorted(os.environ.items()):
+        if valeur and any(nom.endswith("_" + suffixe) for suffixe in suffixes):
+            return valeur
+    return None
+
+
 def depuis_environnement(excel_path: str, modele: str):
-    url = os.environ.get("KV_REST_API_URL") or os.environ.get("UPSTASH_REDIS_REST_URL")
-    token = os.environ.get("KV_REST_API_TOKEN") or os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+    url = _variable("KV_REST_API_URL", "UPSTASH_REDIS_REST_URL")
+    token = _variable("KV_REST_API_TOKEN", "UPSTASH_REDIS_REST_TOKEN")
     if url and token:
         return StockageRedis(url, token, modele)
+    redis_url = _variable("REDIS_URL", "KV_URL")
+    if redis_url:
+        return StockageRedisTCP(redis_url, modele)
     if os.environ.get("VERCEL"):
         return None  # sur Vercel, écrire sur le disque perdrait les réponses
     return StockageExcel(excel_path)

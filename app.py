@@ -103,7 +103,12 @@ app = FastAPI(title="Baromètre social KAMA CI", lifespan=lifespan)
 
 def _stockage():
     if STOCKAGE is None:
-        raise HTTPException(503, "Stockage non configuré : connecter une base Upstash Redis au projet Vercel.")
+        trouvees = sorted(n for n in os.environ if "REDIS" in n or "KV_" in n or "UPSTASH" in n)
+        raise HTTPException(
+            503,
+            "Stockage non configuré : connecter une base Upstash Redis au projet Vercel puis redéployer. "
+            f"Variables détectées : {', '.join(trouvees) or 'aucune'}.",
+        )
     return STOCKAGE
 
 
