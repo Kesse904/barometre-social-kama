@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Résultats baromètre KAMA</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<style>
+  :root {
+    --bg: #f4f6f8; --card: #fff; --text: #1d2733; --muted: #5d6b7a; --primary: #0b5d3b; --border: #d9e0e6;
+    --alerte: #b3261e; --fragile: #c77700; --correct: #1f6fb2; --solide: #0b7a4b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  header { background: var(--primary); color: #fff; padding: 20px 16px; }
+  header div { max-width: 1100px; margin: 0 auto; }
+  header h1 { margin: 0; font-size: 1.4rem; }
+  header p { margin: 6px 0 0; opacity: .9; font-size: .9rem; word-break: break-all; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  h2 { font-size: 1.1rem; margin: 0 0 12px; color: var(--primary); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .kpi small { color: var(--muted); }
+  .kpi b { display: block; font-size: 1.8rem; margin-top: 4px; }
+  .theme { display: grid; grid-template-columns: minmax(140px, 240px) 1fr 60px 80px; gap: 10px; align-items: center; padding: 8px 0; }
+  .track { height: 14px; background: var(--border); border-radius: 7px; overflow: hidden; }
+  .track div { height: 100%; border-radius: 7px; }
+  .badge { font-size: .8rem; font-weight: 600; }
+  .Alerte { color: var(--alerte); } .Fragile { color: var(--fragile); } .Correct { color: var(--correct); } .Solide { color: var(--solide); }
+  .bg-Alerte { background: var(--alerte); } .bg-Fragile { background: var(--fragile); } .bg-Correct { background: var(--correct); } .bg-Solide { background: var(--solide); }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: .85rem; white-space: nowrap; }
+  th, td { border: 1px solid var(--border); padding: 6px 8px; text-align: center; }
+  th { background: var(--primary); color: #fff; position: sticky; top: 0; }
+  td.txt { text-align: left; white-space: normal; min-width: 160px; }
+  input, button { font: inherit; padding: 10px; border-radius: 6px; border: 1px solid var(--border); }
+  button, .btn { background: var(--primary); color: #fff; border: 0; cursor: pointer; text-decoration: none; padding: 10px 16px; border-radius: 6px; display: inline-block; }
+  .login { max-width: 360px; margin: 40px auto; }
+  .login input { width: 100%; margin: 10px 0; }
+  .error { color: var(--alerte); font-weight: 600; }
+  .muted { color: var(--muted); font-size: .9rem; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  @media (max-width: 600px) { .theme { grid-template-columns: 1fr 50px 70px; } .theme .track { grid-column: 1 / -1; grid-row: 2; } }
+</style>
+</head>
+<body>
+<header><div>
+  <h1>Résultats du baromètre social — KAMA CI</h1>
+  <p id="fichier">Accès réservé</p>
+</div></header>
+
+<main>
+  <form id="login" class="card login">
+    <h2>Accès responsable</h2>
+    <label for="code">Code d'accès</label>
+    <input type="password" id="code" required autocomplete="current-password">
+    <p id="login-error" class="error"></p>
+    <button type="submit">Voir les résultats</button>
+  </form>
+
+  <div id="view" hidden>
+    <div class="kpis">
+      <div class="kpi"><small>Répondants</small><b id="k-rep">–</b></div>
+      <div class="kpi"><small>Score global /5</small><b id="k-score">–</b></div>
+      <div class="kpi"><small>Lecture</small><b id="k-lecture">–</b></div>
+      <div class="kpi"><small>En attente d'écriture</small><b id="k-attente">0</b></div>
+    </div>
+
+    <div class="card">
+      <div class="actions" style="justify-content: space-between; margin-bottom: 8px">
+        <h2 style="margin:0">Scores par thème</h2>
+        <div class="actions">
+          <button type="button" id="refresh">Actualiser</button>
+          <a class="btn" id="download" href="#">Télécharger le fichier Excel</a>
+        </div>
+      </div>
+      <div id="themes"></div>
+      <p class="muted">Alerte &lt; 2,5 · Fragile 2,5 à 3,4 · Correct 3,5 à 4,2 · Solide &gt; 4,2</p>
+    </div>
+
+    <div class="card">
+      <h2>Réponses enregistrées — feuille « Saisie des réponses »</h2>
+      <div class="table-wrap"><table id="table"></table></div>
+    </div>
+  </div>
+</main>
+
+<script>
+let code = sessionStorage.getItem("code") || "";
+const fmt = v => v == null ? "–" : v.toFixed(2).replace(".", ",");
+
+function h(tag, text, cls) {
+  const e = document.createElement(tag);
+  if (text != null) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+}
+
+async function charger() {
+  const res = await fetch("/api/resultats", { headers: { "X-Admin-Code": code } });
+  if (res.status === 401) {
+    sessionStorage.removeItem("code");
+    document.getElementById("login").hidden = false;
+    document.getElementById("view").hidden = true;
+    if (code) document.getElementById("login-error").textContent = "Code d'accès incorrect.";
+    return;
+  }
+  const d = await res.json();
+  sessionStorage.setItem("code", code);
+  document.getElementById("login").hidden = true;
+  document.getElementById("view").hidden = false;
+
+  document.getElementById("fichier").textContent = "Fichier : " + d.fichier;
+  document.getElementById("download").href = "/api/excel?code=" + encodeURIComponent(code);
+  document.getElementById("k-rep").textContent = d.repondants;
+  document.getElementById("k-score").textContent = fmt(d.global.score);
+  const kl = document.getElementById("k-lecture");
+  kl.textContent = d.global.lecture || "–";
+  kl.className = d.global.lecture;
+  document.getElementById("k-attente").textContent = d.en_attente;
+
+  const themes = document.getElementById("themes");
+  themes.replaceChildren(...d.themes.map(t => {
+    const row = h("div", null, "theme");
+    const track = h("div", null, "track");
+    const fill = h("div", null, "bg-" + t.lecture);
+    fill.style.width = t.score == null ? "0" : (t.score / 5 * 100) + "%";
+    track.append(fill);
+    row.append(h("span", t.theme), track, h("b", fmt(t.score)), h("span", t.lecture || "–", "badge " + t.lecture));
+    return row;
+  }));
+
+  const table = document.getElementById("table");
+  const nbQ = d.themes.length ? d.reponses[0]?.notes.length ?? 24 : 24;
+  const head = h("tr");
+  ["Ligne Excel", "ID", "Service", "Ancienneté"].forEach(t => head.append(h("th", t)));
+  for (let i = 1; i <= nbQ; i++) head.append(h("th", "Q" + i));
+  head.append(h("th", "Commentaire"));
+  const rows = d.reponses.map(r => {
+    const tr = h("tr");
+    tr.append(h("td", r.ligne), h("td", r.id ?? ""), h("td", r.service ?? "", "txt"), h("td", r.anciennete ?? ""));
+    r.notes.forEach(n => tr.append(h("td", n ?? "")));
+    tr.append(h("td", r.commentaire ?? "", "txt"));
+    return tr;
+  });
+  if (!rows.length) {
+    const tr = h("tr"), td = h("td", "Aucune réponse pour le moment.", "txt");
+    td.colSpan = nbQ + 5;
+    tr.append(td);
+    rows.push(tr);
+  }
+  table.replaceChildren(head, ...rows);
+}
+
+document.getElementById("login").addEventListener("submit", e => {
+  e.preventDefault();
+  code = document.getElementById("code").value;
+  charger();
+});
+document.getElementById("refresh").addEventListener("click", charger);
+if (code) charger();
+</script>
+</body>
+</html>

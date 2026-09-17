@@ -1,0 +1,11 @@
+# Données de l'enquête (réponses des collaborateurs) : jamais dans Git
+donnees/
+*.xlsx
+~$*
+
+# Configuration locale (code d'accès)
+config.local.bat
+
+__pycache__/
+*.pyc
+.venv/
