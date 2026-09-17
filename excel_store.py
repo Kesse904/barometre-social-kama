@@ -145,13 +145,56 @@ def _force_recalc(wb_xml: str) -> str:
     return re.sub(r"<calcPr\b", '<calcPr fullCalcOnLoad="1"', wb_xml, count=1)
 
 
+def _lire(path: str) -> tuple[dict[str, str], dict]:
+    with zipfile.ZipFile(path) as z:
+        paths = _sheet_paths(z)
+        entries = {info.filename: (info, z.read(info.filename)) for info in z.infolist()}
+    return paths, entries
+
+
+def _ecrire(path: str, entries: dict, modified: dict[str, bytes]) -> None:
+    fd, tmp = tempfile.mkstemp(suffix=".xlsx", dir=os.path.dirname(os.path.abspath(path)))
+    os.close(fd)
+    try:
+        with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as out:
+            for name, (info, data) in entries.items():
+                out.writestr(info, modified.get(name, data))
+        # Échoue avec PermissionError si le classeur est ouvert dans Excel
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+
+def vider_reponses(path: str, nb_questions: int, nb_lignes_vides: int = 40) -> None:
+    """Efface toutes les réponses de la feuille de saisie (l'en-tête et la mise en forme restent)."""
+    with _lock:
+        paths, entries = _lire(path)
+        saisie = paths[SHEET_SAISIE]
+        xml = entries[saisie][1].decode("utf-8")
+        debut = re.search(r'<row r="([2-9]|\d{2,})"', xml)
+        fin = xml.index("</sheetData>")
+        colonnes = [index_to_col(col_to_index("D") + i) for i in range(nb_questions)]
+        vides = "".join(
+            f'<row r="{r}"><c r="{COL_ID}{r}"><v>{r - 1}</v></c>'
+            + "".join(f'<c r="{c}{r}" s="{NOTE_STYLE}"/>' for c in colonnes)
+            + "</row>"
+            for r in range(FIRST_DATA_ROW, FIRST_DATA_ROW + nb_lignes_vides)
+        )
+        xml = (xml[: debut.start()] if debut else xml[:fin]) + vides + xml[fin:]
+        derniere = FIRST_DATA_ROW + nb_lignes_vides - 1
+        xml = re.sub(r'<dimension ref="A1:([A-Z]+)\d+"/>', rf'<dimension ref="A1:\g<1>{derniere}"/>', xml, count=1)
+        _ecrire(path, entries, {
+            saisie: xml.encode("utf-8"),
+            "xl/workbook.xml": _force_recalc(entries["xl/workbook.xml"][1].decode("utf-8")).encode("utf-8"),
+        })
+
+
 def append_reponses(path: str, reponses: list[dict], nb_questions: int) -> list[int]:
     """Ajoute des réponses dans la feuille de saisie. Lève PermissionError si le fichier est verrouillé."""
     with _lock:
-        with zipfile.ZipFile(path) as z:
-            paths = _sheet_paths(z)
-            saisie, resultats = paths[SHEET_SAISIE], paths[SHEET_RESULTATS]
-            entries = {info.filename: (info, z.read(info.filename)) for info in z.infolist()}
+        paths, entries = _lire(path)
+        saisie, resultats = paths[SHEET_SAISIE], paths[SHEET_RESULTATS]
 
         sheet_xml = entries[saisie][1].decode("utf-8")
         lignes = []
@@ -159,23 +202,11 @@ def append_reponses(path: str, reponses: list[dict], nb_questions: int) -> list[
             sheet_xml, ligne = _write_row(sheet_xml, rep, nb_questions)
             lignes.append(ligne)
 
-        modified = {
+        _ecrire(path, entries, {
             saisie: sheet_xml.encode("utf-8"),
             resultats: _fix_result_formulas(entries[resultats][1].decode("utf-8")).encode("utf-8"),
             "xl/workbook.xml": _force_recalc(entries["xl/workbook.xml"][1].decode("utf-8")).encode("utf-8"),
-        }
-
-        fd, tmp = tempfile.mkstemp(suffix=".xlsx", dir=os.path.dirname(os.path.abspath(path)))
-        os.close(fd)
-        try:
-            with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as out:
-                for name, (info, data) in entries.items():
-                    out.writestr(info, modified.get(name, data))
-            # Échoue avec PermissionError si le classeur est ouvert dans Excel
-            os.replace(tmp, path)
-        finally:
-            if os.path.exists(tmp):
-                os.remove(tmp)
+        })
         return lignes
 
 

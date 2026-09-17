@@ -94,6 +94,26 @@
   .n4 { background: #e2f1dc; color: #3f7a2f; } .n5 { background: #d3eddd; color: #146b39; }
   .empty { padding: 36px; color: var(--muted); text-align: center; }
 
+  /* Zone sensible */
+  .danger { border-color: #f3cdc9; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .danger h2 { color: var(--alerte); }
+  button.rouge { background: var(--alerte); }
+  button.rouge:hover { background: #9c2a22; }
+  button.rouge-ghost { background: #fff; color: var(--alerte); border: 1.5px solid #f3cdc9; }
+  button.rouge-ghost:hover { background: var(--alerte-soft); border-color: var(--alerte); }
+  dialog { border: 0; border-radius: 18px; padding: 0; width: min(460px, calc(100vw - 32px)); box-shadow: 0 24px 60px rgba(0,0,0,.25); color: var(--text); }
+  dialog::backdrop { background: rgba(10, 25, 17, .55); backdrop-filter: blur(2px); }
+  .dlg { padding: 26px; }
+  .dlg-icon { width: 54px; height: 54px; border-radius: 16px; background: var(--alerte-soft); color: var(--alerte); display: grid; place-items: center; margin-bottom: 14px; }
+  .dlg h2 { font-size: 1.25rem; margin-bottom: 8px; }
+  .dlg p { margin: 0 0 10px; color: var(--muted); font-size: .92rem; }
+  .dlg p b { color: var(--text); }
+  .dlg a { color: var(--primary); font-weight: 700; cursor: pointer; }
+  .dlg input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; font: inherit; letter-spacing: .06em; margin: 6px 0 14px; }
+  .dlg input:focus { outline: none; border-color: var(--alerte); box-shadow: 0 0 0 4px var(--alerte-soft); }
+  .dlg-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--text); color: #fff; padding: 12px 18px; border-radius: 12px; font-size: .9rem; font-weight: 600; box-shadow: var(--shadow); z-index: 50; max-width: calc(100vw - 32px); }
+
   @media (max-width: 860px) { .kpis { grid-template-columns: 1fr; } }
   @media (max-width: 620px) {
     .theme { grid-template-columns: 1fr auto auto; gap: 6px 10px; }
@@ -175,8 +195,34 @@
       </div>
       <div class="table-wrap"><table id="table"></table></div>
     </div>
+
+    <div class="card danger">
+      <div>
+        <h2>Réinitialiser les réponses</h2>
+        <p class="sub">Efface toutes les réponses pour lancer une nouvelle enquête. Une sauvegarde est conservée automatiquement.</p>
+      </div>
+      <button type="button" class="rouge-ghost" id="reset-open">Réinitialiser…</button>
+    </div>
   </div>
 </main>
+
+<dialog id="reset-dialog">
+  <form class="dlg" id="reset-form" method="dialog">
+    <div class="dlg-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+    </div>
+    <h2>Effacer les <span id="reset-nb">0</span> réponses ?</h2>
+    <p>Le questionnaire repartira de zéro. Les réponses actuelles ne seront plus visibles dans l'application ni dans le fichier Excel téléchargé.</p>
+    <p>Conseil : <a id="reset-download">téléchargez d'abord le fichier Excel</a>.</p>
+    <p>Pour confirmer, tapez <b>REINITIALISER</b> :</p>
+    <input type="text" id="reset-confirm" autocomplete="off" spellcheck="false" placeholder="REINITIALISER">
+    <p id="reset-error" class="error"></p>
+    <div class="dlg-actions">
+      <button type="button" class="ghost" id="reset-cancel">Annuler</button>
+      <button type="submit" class="rouge" id="reset-submit" disabled>Effacer les réponses</button>
+    </div>
+  </form>
+</dialog>
 
 <script>
 let code = sessionStorage.getItem("code") || "";
@@ -283,6 +329,52 @@ document.getElementById("download").addEventListener("click", async e => {
   } finally {
     btn.disabled = false;
     btn.textContent = label;
+  }
+});
+const dlg = document.getElementById("reset-dialog");
+const confirmInput = document.getElementById("reset-confirm");
+const resetBtn = document.getElementById("reset-submit");
+
+function toast(message) {
+  const t = h("div", message, "toast");
+  document.body.append(t);
+  setTimeout(() => t.remove(), 6000);
+}
+
+document.getElementById("reset-open").addEventListener("click", () => {
+  document.getElementById("reset-nb").textContent = document.getElementById("k-rep").textContent;
+  confirmInput.value = "";
+  resetBtn.disabled = true;
+  document.getElementById("reset-error").textContent = "";
+  dlg.showModal();
+  confirmInput.focus();
+});
+document.getElementById("reset-cancel").addEventListener("click", () => dlg.close());
+document.getElementById("reset-download").addEventListener("click", () => document.getElementById("download").click());
+confirmInput.addEventListener("input", () => {
+  resetBtn.disabled = confirmInput.value.trim().toUpperCase() !== "REINITIALISER";
+});
+document.getElementById("reset-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (resetBtn.disabled) return;
+  resetBtn.disabled = true;
+  resetBtn.textContent = "Effacement…";
+  try {
+    const res = await fetch("/api/reinitialiser", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Admin-Code": code },
+      body: JSON.stringify({ confirmation: confirmInput.value }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : res.statusText);
+    dlg.close();
+    toast(`${data.supprimees} réponse(s) effacée(s). Sauvegarde : ${data.sauvegarde}`);
+    charger();
+  } catch (err) {
+    document.getElementById("reset-error").textContent = err.message;
+    resetBtn.disabled = false;
+  } finally {
+    resetBtn.textContent = "Effacer les réponses";
   }
 });
 if (code) charger();

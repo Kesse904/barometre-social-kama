@@ -31,6 +31,16 @@ class StockageExcel:
     def fichier_excel(self, nb_questions: int) -> str:
         return self.path
 
+    def reinitialiser(self, nb_questions: int) -> str:
+        """Sauvegarde le classeur puis efface les réponses. Renvoie l'emplacement de la sauvegarde."""
+        dossier = os.path.join(os.path.dirname(os.path.abspath(__file__)), "donnees", "sauvegardes")
+        os.makedirs(dossier, exist_ok=True)
+        nom = os.path.splitext(os.path.basename(self.path))[0]
+        sauvegarde = os.path.join(dossier, f"{nom}_{datetime.now():%Y-%m-%d_%H%M%S}.xlsx")
+        shutil.copy2(self.path, sauvegarde)
+        excel_store.vider_reponses(self.path, nb_questions)
+        return sauvegarde
+
 
 class StockageRedis:
     mode = "redis"
@@ -62,6 +72,14 @@ class StockageRedis:
             rep = json.loads(brut)
             lignes.append({"ligne": excel_store.FIRST_DATA_ROW + i, "id": i + 1, **rep})
         return lignes
+
+    def reinitialiser(self, nb_questions: int) -> str:
+        """Archive les réponses sous une autre clé (récupérables) puis repart de zéro."""
+        archive = f"{REDIS_KEY}:archive:{datetime.now():%Y-%m-%d_%H%M%S}"
+        if self._commande("EXISTS", REDIS_KEY):
+            self._commande("RENAME", REDIS_KEY, archive)
+            return f"clé Redis « {archive} »"
+        return "aucune réponse à archiver"
 
     def fichier_excel(self, nb_questions: int) -> str:
         """Génère le classeur complet (modèle + toutes les réponses) dans un fichier temporaire."""

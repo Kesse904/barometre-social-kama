@@ -183,6 +183,29 @@ def resultats(x_admin_code: str | None = Header(default=None)):
     return data
 
 
+class Reinitialisation(BaseModel):
+    confirmation: str
+
+
+@app.post("/api/reinitialiser")
+def reinitialiser(demande: Reinitialisation, x_admin_code: str | None = Header(default=None)):
+    _check_admin(x_admin_code)
+    if demande.confirmation.strip().upper() != "REINITIALISER":
+        raise HTTPException(400, "Confirmation invalide : taper REINITIALISER")
+    store = _stockage()
+    nb = len(store.lister(len(QUESTIONS)))
+    try:
+        if store.mode == "excel":
+            with _pending_lock:
+                sauvegarde = store.reinitialiser(len(QUESTIONS))
+                _save_pending([])
+        else:
+            sauvegarde = store.reinitialiser(len(QUESTIONS))
+    except PermissionError:
+        raise HTTPException(409, "Le fichier Excel est ouvert : fermez-le puis réessayez.")
+    return {"supprimees": nb, "sauvegarde": sauvegarde}
+
+
 @app.get("/api/excel")
 def telecharger_excel(x_admin_code: str | None = Header(default=None)):
     _check_admin(x_admin_code)
