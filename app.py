@@ -24,7 +24,22 @@ BASE_DIR = Path(__file__).resolve().parent
 MODELE = str(BASE_DIR / "modele" / "Barometre_social_KAMA_CI.xlsx")
 EXCEL_PATH = os.environ.get("BAROMETRE_EXCEL", str(Path.home() / "Downloads" / "Barometre_social_KAMA_CI.xlsx"))
 ADMIN_CODE = os.environ.get("BAROMETRE_ADMIN_CODE", "")
-SERVICES = [s.strip() for s in os.environ.get("BAROMETRE_SERVICES", "").split(";") if s.strip()]
+DEPARTEMENTS = [
+    "Direction Générale / Transport",
+    "Finance & Comptabilité",
+    "Ressources Humaines",
+    "Achats",
+    "Logistique & Gestion des Stocks",
+    "Commercial & Marketing",
+    "Informatique / Systèmes d’Information",
+    "Projets / BTP",
+    "Organisation, Qualité, Conformité & RSE",
+    "Audit Interne",
+    "Administration / Secrétariat",
+    "Stagiaires",
+]
+# BAROMETRE_SERVICES (séparés par ;) remplace la liste par défaut si elle est définie
+SERVICES = [s.strip() for s in os.environ.get("BAROMETRE_SERVICES", "").split(";") if s.strip()] or DEPARTEMENTS
 
 STOCKAGE = stockage.depuis_environnement(EXCEL_PATH, MODELE)
 if STOCKAGE is not None and STOCKAGE.mode == "excel" and not Path(EXCEL_PATH).exists():
@@ -52,6 +67,13 @@ class Reponse(BaseModel):
             raise ValueError(f"{len(QUESTIONS)} notes attendues")
         if any(n < 1 or n > 5 for n in v):
             raise ValueError("Chaque note doit être comprise entre 1 et 5")
+        return v
+
+    @field_validator("service")
+    @classmethod
+    def check_service(cls, v):
+        if v.strip() not in SERVICES:
+            raise ValueError("Département inconnu : choisir dans la liste")
         return v
 
 

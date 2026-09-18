@@ -56,6 +56,9 @@
   }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px var(--primary-soft); }
   textarea { min-height: 110px; resize: vertical; }
+  select { appearance: none; cursor: pointer; padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23637168' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+  select:invalid { color: var(--muted); }
+  select option { color: var(--text); }
 
   /* Échelle */
   .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 14px; font-size: .8rem; color: var(--muted); }
@@ -157,8 +160,8 @@
         </div>
         <div class="fields">
           <div>
-            <label class="field" for="service">Département / Service</label>
-            <div id="service-wrap"><input type="text" id="service" required maxlength="120" autocomplete="off" placeholder="Ex. : Logistique"></div>
+            <label class="field" for="service">Département</label>
+            <div id="service-wrap"><select id="service" required><option value="">Chargement…</option></select></div>
           </div>
           <div>
             <label class="field" for="anciennete">Ancienneté (en années)</label>
@@ -224,11 +227,9 @@ async function load() {
   questions = data.questions;
   document.getElementById("pill-questions").textContent = `📝 ${questions.length} questions`;
 
-  if (data.services.length) {
-    const select = el("select", { id: "service", required: "" }, el("option", { value: "" }, "— Choisir —"));
-    data.services.forEach(s => select.append(el("option", { value: s }, s)));
-    document.getElementById("service-wrap").replaceChildren(select);
-  }
+  const select = document.getElementById("service");
+  select.replaceChildren(el("option", { value: "", disabled: "", selected: "" }, "— Choisir votre département —"));
+  data.services.forEach(s => select.append(el("option", { value: s }, s)));
 
   const container = document.getElementById("themes");
   const themes = [...new Set(questions.map(q => q.theme))];
@@ -292,7 +293,7 @@ document.getElementById("form").addEventListener("submit", async e => {
   const service = document.getElementById("service").value.trim();
   const ancienneteRaw = document.getElementById("anciennete").value;
   if (!service || ancienneteRaw === "" || +ancienneteRaw < 0 || +ancienneteRaw > 60) {
-    error.textContent = "Merci d'indiquer votre service et votre ancienneté (0 à 60 ans).";
+    error.textContent = "Merci de choisir votre département et d'indiquer votre ancienneté (0 à 60 ans).";
     document.getElementById("profil").scrollIntoView({ behavior: "smooth", block: "center" });
     setTimeout(() => document.getElementById(service ? "anciennete" : "service").focus({ preventScroll: true }), 400);
     return;
