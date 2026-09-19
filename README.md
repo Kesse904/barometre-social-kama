@@ -37,7 +37,7 @@ télécharger le fichier Excel.
 
 - Les questions sont lues dans l'onglet **Questionnaire** : modifier une question dans Excel
   puis relancer l'application suffit.
-- Le collaborateur ne voit que le questionnaire (département choisi dans une liste, ancienneté, 24 notes de 1 à 5,
+- Le collaborateur ne voit que le questionnaire (entité KAMA CI choisie dans une liste, ancienneté, 24 notes de 1 à 5,
   commentaire facultatif). Aucun nom n'est demandé.
 - **Fichier ouvert dans Excel** : Excel verrouille le fichier. Les réponses sont alors mises en
   attente dans `donnees/reponses_en_attente.json` et écrites automatiquement (nouvel essai
@@ -60,5 +60,5 @@ Le classeur Excel, le dossier `donnees/` et `config.local.bat` ne sont jamais en
 |---|---|---|
 | `BAROMETRE_EXCEL` | Chemin du classeur | `Téléchargements\Barometre_social_KAMA_CI.xlsx` |
 | `BAROMETRE_ADMIN_CODE` | Code de la page /resultats | (page désactivée si vide) |
-| `BAROMETRE_SERVICES` | Remplace la liste des départements (séparés par `;`) | les 12 départements KAMA CI |
+| `BAROMETRE_SERVICES` | Remplace la liste des entités (séparées par `;`) | les 4 entités KAMA CI |
 | `PORT` / `HOST` | Port / interface d'écoute | `8080` / `0.0.0.0` |

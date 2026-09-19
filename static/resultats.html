@@ -281,7 +281,7 @@ async function charger() {
   const table = document.getElementById("table");
   const nbQ = d.reponses[0]?.notes.length ?? 24;
   const thead = h("thead"), head = h("tr");
-  ["Ligne", "ID", "Département", "Ancienneté"].forEach(t => head.append(h("th", t)));
+  ["Ligne", "ID", "Entité", "Ancienneté"].forEach(t => head.append(h("th", t)));
   for (let i = 1; i <= nbQ; i++) head.append(h("th", "Q" + i));
   head.append(h("th", "Commentaire"));
   thead.append(head);

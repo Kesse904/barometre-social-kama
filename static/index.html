@@ -160,7 +160,7 @@
         </div>
         <div class="fields">
           <div>
-            <label class="field" for="service">Département</label>
+            <label class="field" for="service">Entité KAMA CI</label>
             <div id="service-wrap"><select id="service" required><option value="">Chargement…</option></select></div>
           </div>
           <div>
@@ -228,7 +228,7 @@ async function load() {
   document.getElementById("pill-questions").textContent = `📝 ${questions.length} questions`;
 
   const select = document.getElementById("service");
-  select.replaceChildren(el("option", { value: "", disabled: "", selected: "" }, "— Choisir votre département —"));
+  select.replaceChildren(el("option", { value: "", disabled: "", selected: "" }, "— Choisir votre entité —"));
   data.services.forEach(s => select.append(el("option", { value: s }, s)));
 
   const container = document.getElementById("themes");
@@ -293,7 +293,7 @@ document.getElementById("form").addEventListener("submit", async e => {
   const service = document.getElementById("service").value.trim();
   const ancienneteRaw = document.getElementById("anciennete").value;
   if (!service || ancienneteRaw === "" || +ancienneteRaw < 0 || +ancienneteRaw > 60) {
-    error.textContent = "Merci de choisir votre département et d'indiquer votre ancienneté (0 à 60 ans).";
+    error.textContent = "Merci de choisir votre entité et d'indiquer votre ancienneté (0 à 60 ans).";
     document.getElementById("profil").scrollIntoView({ behavior: "smooth", block: "center" });
     setTimeout(() => document.getElementById(service ? "anciennete" : "service").focus({ preventScroll: true }), 400);
     return;

@@ -24,22 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent
 MODELE = str(BASE_DIR / "modele" / "Barometre_social_KAMA_CI.xlsx")
 EXCEL_PATH = os.environ.get("BAROMETRE_EXCEL", str(Path.home() / "Downloads" / "Barometre_social_KAMA_CI.xlsx"))
 ADMIN_CODE = os.environ.get("BAROMETRE_ADMIN_CODE", "")
-DEPARTEMENTS = [
-    "Direction Générale / Transport",
-    "Finance & Comptabilité",
-    "Ressources Humaines",
-    "Achats",
-    "Logistique & Gestion des Stocks",
-    "Commercial & Marketing",
-    "Informatique / Systèmes d’Information",
-    "Projets / BTP",
-    "Organisation, Qualité, Conformité & RSE",
-    "Audit Interne",
-    "Administration / Secrétariat",
-    "Stagiaires",
+ENTITES = [
+    "Centre emplisseur Daloa",
+    "Centre emplisseur Yamoussoukro",
+    "KTLS Vridi",
+    "Kama Marcory",
 ]
-# BAROMETRE_SERVICES (séparés par ;) remplace la liste par défaut si elle est définie
-SERVICES = [s.strip() for s in os.environ.get("BAROMETRE_SERVICES", "").split(";") if s.strip()] or DEPARTEMENTS
+# BAROMETRE_SERVICES (séparés par ;) remplace la liste des entités si elle est définie
+SERVICES = [s.strip() for s in os.environ.get("BAROMETRE_SERVICES", "").split(";") if s.strip()] or ENTITES
 
 STOCKAGE = stockage.depuis_environnement(EXCEL_PATH, MODELE)
 if STOCKAGE is not None and STOCKAGE.mode == "excel" and not Path(EXCEL_PATH).exists():
@@ -73,7 +65,7 @@ class Reponse(BaseModel):
     @classmethod
     def check_service(cls, v):
         if v.strip() not in SERVICES:
-            raise ValueError("Département inconnu : choisir dans la liste")
+            raise ValueError("Entité inconnue : choisir dans la liste")
         return v
 
 
